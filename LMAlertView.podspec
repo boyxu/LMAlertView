@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.requires_arc = true
 
   s.ios.deployment_target = '7.0'
-  s.dependency 'RBBAnimation', '~> 0.3.0'
+  s.dependency 'RBBAnimation', '~> 0.4.0'
   s.dependency 'CAAnimationBlocks', '~> 0.0.1'
 
   s.public_header_files = 'LMAlertView/*.h'
