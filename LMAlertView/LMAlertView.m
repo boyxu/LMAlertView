@@ -420,17 +420,44 @@
     [self.alertContainerView setTransform:transform];
 }
 
+- (UIWindow *)appWindow 
+{
+    if (@available(iOS 13, *)) {
+        NSSet<UIScene *> *scenes = [[UIApplication sharedApplication] connectedScenes];
+        for (UIScene *scene in scenes) {
+            if ([scene isKindOfClass:[UIWindowScene class]]) {
+                UIWindowScene *windowScene = (UIWindowScene *)scene;
+                return windowScene.keyWindow;
+            }
+        }
+        id<UIApplicationDelegate> appDelegate = [[UIApplication sharedApplication] delegate];
+        return [appDelegate window];
+    } else {
+        return [UIApplication sharedApplication].delegate.window;
+    }
+}
+
 - (void)show
 {
 	if ([self.delegate respondsToSelector:@selector(willPresentAlertView:)]) {
 		[self.delegate willPresentAlertView:self];
 	}
 	
-	id<UIApplicationDelegate> appDelegate = [[UIApplication sharedApplication] delegate];
+	//id<UIApplicationDelegate> appDelegate = [[UIApplication sharedApplication] delegate];
+ 	UIWindow *appKeyWindow = [self appWindow];
 	
 	// You can have more than one UIWindow in the view hierachy, which is how UIAlertView works
-	self.window = [[UIWindow alloc] initWithFrame:[appDelegate window].frame];
+	self.window = [[UIWindow alloc] initWithFrame:appKeyWindow.frame];
 	self.window.tintColor = self.tintColor;
+ 
+	if (@available(iOS 13.0, *)) {
+		for (UIWindowScene *windowScene in [UIApplication sharedApplication].connectedScenes) {
+			if (windowScene.activationState == UISceneActivationStateForegroundActive) {
+				self.window.windowScene = windowScene;
+				break;
+			}
+		}
+	}
 	
 	LMEmbeddedViewController *viewController = [[LMEmbeddedViewController alloc] init];
 	viewController.alertView = self;
@@ -452,6 +479,7 @@
 	}
 	else {
 		UIViewController *viewController2 = [[UIViewController alloc] init];
+        viewController2.modalPresentationStyle = UIModalPresentationOverFullScreen;
 		viewController2.view = self.alertContainerView;
 		
 		// We fake "present" this view controller so it can be dismissed elswhere
